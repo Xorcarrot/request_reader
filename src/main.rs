@@ -3,6 +3,8 @@ use std::io::{stdin, Read, Write};
 use std::str::from_utf8;
 use std::env;
 
+const REQUEST_SIZE: usize = 4096 * 8;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let arg = match args.get(1) {
@@ -23,11 +25,11 @@ fn main() {
     println!("waiting for request on port {port}...");
     for stream in listener.incoming() {
         if let Ok(mut stream) = stream {
-            let mut message: [u8; 4096] = [" ".as_bytes()[0]; 4096];
+            let mut message: [u8; REQUEST_SIZE] = [" ".as_bytes()[0]; REQUEST_SIZE];
             stream.read(&mut message).expect("can't read body");
 
             let address = stream.peer_addr().expect("no socket address found");
-            let body = from_utf8(&message).expect("wrong format was sent").trim();
+            let body = from_utf8(&message).unwrap_or("<invalid UTF-8>").trim();
 
 
             println!("{address}:\n{body}");
